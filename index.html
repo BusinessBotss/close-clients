@@ -96,25 +96,38 @@
       let guests;
 
       async function fetchGuests() {
-        const res = await fetch(apiUrl);
-        guests = await res.json();
-        renderGrid(guests);
+        try {
+          const res = await fetch(apiUrl);
+          guests = await res.json();
+          renderGrid(guests);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
       }
 
       function renderGrid(data) {
         guestGrid.innerHTML = "";
         data.forEach(guest => {
+          const name = guest["Full Name"] || "Unnamed";
+          const age = guest.Age || "-";
+          const city = guest.City || "-";
+          const contactMethod = guest["Preferred Contact Method"] || "-";
+          const phone = guest["Contact Number"] || "-";
+          const social = guest["Social/Portfolio"] || "-";
+          const why = guest["Why Attend"] || "-";
+          const availability = guest.Availability || "-";
+
           const card = document.createElement("div");
           card.className = "card";
           card.innerHTML = `
-            <h3>${guest["Full Name"] || "Unnamed"}</h3>
-            <p><strong>Age:</strong> ${guest.Age || "-"}</p>
-            <p><strong>City:</strong> ${guest.City || "-"}</p>
-            <p><strong>Preferred Contact:</strong> ${guest["Preferred Contact Method"] || "-"}</p>
-            <p><strong>Phone:</strong> ${guest["Contact Number"] || "-"}</p>
-            <p><strong>Social:</strong> ${guest["Social/Portfolio"] || "-"}</p>
-            <p><strong>Why Attend:</strong> ${guest["Why Attend"] || "-"}</p>
-            <p><strong>Availability:</strong> ${guest.Availability || "-"}</p>
+            <h3>${name}</h3>
+            <p><strong>Age:</strong> ${age}</p>
+            <p><strong>City:</strong> ${city}</p>
+            <p><strong>Preferred Contact:</strong> ${contactMethod}</p>
+            <p><strong>Phone:</strong> ${phone}</p>
+            <p><strong>Social:</strong> ${social}</p>
+            <p><strong>Why Attend:</strong> ${why}</p>
+            <p><strong>Availability:</strong> ${availability}</p>
           `;
           guestGrid.appendChild(card);
         });
