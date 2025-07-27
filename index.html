@@ -4,11 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CLOSE CRM Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
       body {
-        background-color: #000;
-        font-family: 'Georgia', serif;
-        color: #fff;
+        background-color: #fff;
+        font-family: 'Montserrat', sans-serif;
+        color: #000;
         margin: 0;
         padding: 20px;
       }
@@ -16,6 +17,7 @@
         color: #c10016;
         text-align: center;
         margin-bottom: 20px;
+        font-weight: 700;
       }
       .controls {
         display: flex;
@@ -34,31 +36,45 @@
       }
       .controls input {
         flex: 1;
+        border: 1px solid #ccc;
       }
       .controls button {
         background-color: #c10016;
-        color: #000;
+        color: #fff;
         cursor: pointer;
       }
       .controls button:hover {
         background-color: #e3122b;
       }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background-color: #111;
+      .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
       }
-      th, td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid #222;
+      .card {
+        background-color: #fff;
+        padding: 16px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+        border: 1px solid #eee;
       }
-      th {
-        background-color: #222;
+      .card:hover {
+        transform: translateY(-4px);
+      }
+      .card h3 {
         color: #c10016;
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-weight: 700;
       }
-      tr:hover {
-        background-color: #1a1a1a;
+      .card p {
+        margin: 4px 0;
+        color: #000;
+      }
+      .card p strong {
+        font-weight: 700;
+        color: #c10016;
       }
     </style>
   </head>
@@ -72,76 +88,52 @@
       <button onclick="filterStatus('no')">Not Confirmed</button>
     </div>
 
-    <table id="guestTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Phone</th>
-          <th>Email</th>
-          <th>Confirmed</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <h2 style="color:#c10016; margin-top:40px;">Add New Guest</h2>
-    <form id="guestForm">
-      <div class="controls">
-        <input type="text" name="Name" placeholder="Name" required />
-        <input type="text" name="Phone" placeholder="Phone" required />
-        <input type="email" name="Email" placeholder="Email" required />
-        <select name="Confirmed">
-          <option value="no">Not Confirmed</option>
-          <option value="yes">Confirmed</option>
-        </select>
-        <button type="submit">Add</button>
-      </div>
-    </form>
+    <div id="guestGrid" class="grid-container"></div>
 
     <script>
       const apiUrl = "https://api.sheetbest.com/sheets/3b575219-6f66-44e0-b1ef-babf85af77a8";
-      const tableBody = document.querySelector("#guestTable tbody");
-      let guests = [];
+      const guestGrid = document.querySelector("#guestGrid");
+      let guests;
 
       async function fetchGuests() {
         const res = await fetch(apiUrl);
         guests = await res.json();
-        renderTable(guests);
+        renderGrid(guests);
       }
 
-      function renderTable(data) {
-        tableBody.innerHTML = "";
+      function renderGrid(data) {
+        guestGrid.innerHTML = "";
         data.forEach(guest => {
-          const row = document.createElement("tr");
-          row.innerHTML = `<td>${guest.Name}</td><td>${guest.Phone}</td><td>${guest.Email}</td><td>${guest.Confirmed}</td>`;
-          tableBody.appendChild(row);
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <h3>${guest["Full Name"] || "Unnamed"}</h3>
+            <p><strong>Age:</strong> ${guest.Age || "-"}</p>
+            <p><strong>City:</strong> ${guest.City || "-"}</p>
+            <p><strong>Preferred Contact:</strong> ${guest["Preferred Contact Method"] || "-"}</p>
+            <p><strong>Phone:</strong> ${guest["Contact Number"] || "-"}</p>
+            <p><strong>Social:</strong> ${guest["Social/Portfolio"] || "-"}</p>
+            <p><strong>Why Attend:</strong> ${guest["Why Attend"] || "-"}</p>
+            <p><strong>Availability:</strong> ${guest.Availability || "-"}</p>
+          `;
+          guestGrid.appendChild(card);
         });
       }
 
       function filterTable() {
         const query = document.getElementById("search").value.toLowerCase();
-        const filtered = guests.filter(g => g.Name.toLowerCase().includes(query) || g.Phone.includes(query));
-        renderTable(filtered);
+        const filtered = guests.filter(g =>
+          (g["Full Name"] || "").toLowerCase().includes(query) ||
+          (g["Contact Number"] || "").includes(query)
+        );
+        renderGrid(filtered);
       }
 
       function filterStatus(status) {
-        if (status === "all") return renderTable(guests);
-        const filtered = guests.filter(g => g.Confirmed.toLowerCase() === status);
-        renderTable(filtered);
+        if (status === "all") return renderGrid(guests);
+        const filtered = guests.filter(g => (g.Confirmed || "").toLowerCase() === status);
+        renderGrid(filtered);
       }
-
-      document.getElementById("guestForm").addEventListener("submit", async e => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
-        await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        e.target.reset();
-        fetchGuests();
-      });
 
       fetchGuests();
     </script>
