@@ -58,6 +58,7 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         transition: transform 0.2s;
         border: 1px solid #eee;
+        cursor: pointer;
       }
       .card:hover {
         transform: translateY(-4px);
@@ -105,6 +106,22 @@
         }
       }
 
+      async function confirmGuest(phone) {
+        try {
+          await fetch(apiUrl, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Api-Key": "@f$nSFgqwriK_BI4PrEiJYFxNoqW@p25qGKWHv_y2JW$CIpe3D7xykf4OK_GbC8s"
+            },
+            body: JSON.stringify({ "Contact Number": phone, "Confirmed": "yes" })
+          });
+          fetchGuests();
+        } catch (err) {
+          console.error("Failed to confirm:", err);
+        }
+      }
+
       function renderGrid(data) {
         guestGrid.innerHTML = "";
         data.forEach(guest => {
@@ -129,6 +146,7 @@
             <p><strong>Why Attend:</strong> ${why}</p>
             <p><strong>Availability:</strong> ${availability}</p>
           `;
+          card.onclick = () => confirmGuest(phone);
           guestGrid.appendChild(card);
         });
       }
